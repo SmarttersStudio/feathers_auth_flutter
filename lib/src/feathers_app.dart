@@ -1,19 +1,53 @@
 part of feathers_auth_flutter;
 
 abstract class FeathersApp {
+  ///
+  /// Base url
+  ///
   String baseUrl;
+
+  ///
+  /// Authentication configurations
+  ///
   AuthConfig authConfig;
+
+  ///
+  /// Access token is authorised
+  ///
   String accessToken;
+
+  ///
+  /// Dio client
+  ///
   Dio dio;
+
+  ///
+  /// Shared preference for storing token
+  ///
   SharedPreferences preferences;
 
   FeathersApp(this.baseUrl, {this.authConfig});
 
+  ///
+  /// Configure app using base url and authentication configurations
+  ///
   void configure({String baseUrl, AuthConfig authConfig});
+
+  ///
+  /// Initialize app
+  ///
   void initialize();
   FlutterFeatherService service(String path);
+
+  ///
+  /// Authenticate app
+  ///
   Future<Response<T>> authenticate<T>(
       Map<String, dynamic> body, Map<String, dynamic> queryParameters);
+
+  ///
+  /// Re-authenticate app and update access token
+  ///
   reAuthenticate(AuthMode authMode);
 }
 
