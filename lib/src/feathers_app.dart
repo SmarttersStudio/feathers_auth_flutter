@@ -1,32 +1,57 @@
 part of feathers_auth_flutter;
 
-class FeathersApp {
+abstract class FeathersApp {
+  String baseUrl;
+  AuthConfig authConfig;
+  String accessToken;
+  Dio dio;
+  SharedPreferences preferences;
+
+  FeathersApp(this.baseUrl, {this.authConfig});
+
+  void configure({String baseUrl, AuthConfig authConfig});
+  void initialize();
+  FlutterFeatherService service(String path);
+  Future<Response<T>> authenticate<T>(
+      Map<String, dynamic> body, Map<String, dynamic> queryParameters);
+  reAuthenticate(AuthMode authMode);
+}
+
+class FlutterFeathersApp extends FeathersApp {
   String baseUrl;
   AuthConfig authConfig;
   String _accessToken;
   Dio _dio;
   SharedPreferences _preferences;
 
-  FeathersApp(this.baseUrl, {this.authConfig});
+  FlutterFeathersApp(this.baseUrl, {this.authConfig})
+      : super(baseUrl, authConfig: authConfig);
 
+  @override
   void configure({String baseUrl, AuthConfig authConfig}) {
     this.baseUrl = baseUrl;
     this.authConfig = authConfig;
   }
 
+  @override
   void initialize() async {
     _dio = Dio();
     _preferences = await SharedPreferences.getInstance();
+    super.dio = _dio;
+    super.preferences = _preferences;
     if (authConfig != null) {
       this._accessToken = _preferences.getString(authConfig.sharedPrefKey);
+      super.accessToken = _accessToken;
     }
   }
 
-  FeatherService service(String path) {
+  @override
+  FlutterFeatherService service(String path) {
     _dio.options.headers['Authorization'] = accessToken;
-    return FeatherService(this, path, _dio);
+    return FlutterFeatherService(this, path, _dio);
   }
 
+  @override
   Future<Response<T>> authenticate<T>(
       Map<String, dynamic> body, Map<String, dynamic> queryParameters) async {
     try {
@@ -47,6 +72,7 @@ class FeathersApp {
     }
   }
 
+  @override
   reAuthenticate(AuthMode mode) {
     if (accessToken?.isEmpty ?? true) {
       // authenticate(body, queryParameters);
