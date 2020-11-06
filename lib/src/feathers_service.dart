@@ -47,9 +47,17 @@ abstract class FeathersService {
   ///
   Future<Response<T>> update<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters});
-  Future<Response<T>> patch<T>(
+
+  ///
+  /// PATCH method request with required id and optional queryParameters
+  ///
+  Future<Response<T>> patch<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters});
-  Future<Response<T>> delete<T>(
+
+  ///
+  /// DELETE method request with required id and optional queryParameters
+  ///
+  Future<Response<T>> delete<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters});
 }
 
@@ -107,7 +115,7 @@ class FlutterFeatherService extends FeathersService {
   }
 
   @override
-  Future<Response<T>> patch<T>(
+  Future<Response<T>> patch<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
     try {
       final response = await dio.patch(path, queryParameters: queryParameters);
@@ -118,7 +126,7 @@ class FlutterFeatherService extends FeathersService {
   }
 
   @override
-  Future<Response<T>> delete<T>(
+  Future<Response<T>> delete<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
     try {
       final response = await dio.delete(path, queryParameters: queryParameters);
