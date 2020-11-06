@@ -11,7 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  dio:
+  shared_preferences:
 dev_dependencies:
   flutter_test:
     sdk: flutter
