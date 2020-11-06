@@ -96,7 +96,8 @@ class FlutterFeatherService extends FeathersService {
   Future<Response<T>> create<T>(
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
     try {
-      final response = await dio.post(path, queryParameters: queryParameters);
+      final response =
+          await dio.post(path, data: body, queryParameters: queryParameters);
       return response;
     } catch (error) {
       return _handleError(error);
@@ -107,7 +108,8 @@ class FlutterFeatherService extends FeathersService {
   Future<Response<T>> update<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
     try {
-      final response = await dio.patch(path, queryParameters: queryParameters);
+      final response =
+          await dio.patch(path, data: body, queryParameters: queryParameters);
       return response;
     } catch (error) {
       return _handleError(error);
@@ -118,7 +120,8 @@ class FlutterFeatherService extends FeathersService {
   Future<Response<T>> patch<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
     try {
-      final response = await dio.patch(path, queryParameters: queryParameters);
+      final response =
+          await dio.patch(path, data: body, queryParameters: queryParameters);
       return response;
     } catch (error) {
       return _handleError(error);
