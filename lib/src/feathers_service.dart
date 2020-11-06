@@ -85,7 +85,8 @@ class FlutterFeatherService extends FeathersService {
   Future<Response<T>> find<T>(String id,
       {Map<String, dynamic> queryParameters}) async {
     try {
-      final response = await dio.get(path, queryParameters: queryParameters);
+      final response =
+          await dio.get('$path/$id', queryParameters: queryParameters);
       return response;
     } catch (error) {
       return _handleError(error);
@@ -108,8 +109,8 @@ class FlutterFeatherService extends FeathersService {
   Future<Response<T>> update<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
     try {
-      final response =
-          await dio.patch(path, data: body, queryParameters: queryParameters);
+      final response = await dio.patch('$path/$id',
+          data: body, queryParameters: queryParameters);
       return response;
     } catch (error) {
       return _handleError(error);
@@ -120,8 +121,8 @@ class FlutterFeatherService extends FeathersService {
   Future<Response<T>> patch<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
     try {
-      final response =
-          await dio.patch(path, data: body, queryParameters: queryParameters);
+      final response = await dio.patch('$path/$id',
+          data: body, queryParameters: queryParameters);
       return response;
     } catch (error) {
       return _handleError(error);
@@ -132,7 +133,8 @@ class FlutterFeatherService extends FeathersService {
   Future<Response<T>> delete<T>(String id,
       {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
     try {
-      final response = await dio.delete(path, queryParameters: queryParameters);
+      final response =
+          await dio.delete('$path/$id', queryParameters: queryParameters);
       return response;
     } catch (error) {
       return _handleError(error);
