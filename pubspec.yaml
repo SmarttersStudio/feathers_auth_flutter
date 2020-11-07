@@ -9,5 +9,5 @@ environment:
 #  flutter: ">=1.20.0 <2.0.0"
 
 dependencies:
-  dio:
-  shared_preferences:
+  dio: ^3.0.10
+  shared_preferences: ^0.5.12+4
