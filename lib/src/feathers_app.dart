@@ -19,7 +19,7 @@ abstract class FeathersApp {
   ///
   /// Dio client
   ///
-  Dio dio;
+  Dio _dio;
 
   ///
   /// Shared preference for storing token
@@ -37,13 +37,14 @@ abstract class FeathersApp {
   /// Initialize app
   ///
   void initialize();
+
   FlutterFeatherService service(String path);
 
   ///
-  /// Authenticate app
+  /// Authenticate your app and store access token to your shared preference with provided key
   ///
   Future<Response<T>> authenticate<T>(
-      Map<String, dynamic> body, Map<String, dynamic> queryParameters);
+      {Map<String, dynamic> body, Map<String, dynamic> queryParameters});
 
   ///
   /// Re-authenticate app and update access token
@@ -51,14 +52,11 @@ abstract class FeathersApp {
   reAuthenticate(AuthMode authMode);
 }
 
+///
+/// Implementation of FeathersApp
+///
 class FlutterFeathersApp extends FeathersApp {
-  String baseUrl;
-  AuthConfig authConfig;
-  String _accessToken;
-  Dio _dio;
-  SharedPreferences _preferences;
-
-  FlutterFeathersApp(this.baseUrl, {this.authConfig})
+  FlutterFeathersApp(String baseUrl, {AuthConfig authConfig})
       : super(baseUrl, authConfig: authConfig);
 
   @override
@@ -70,15 +68,19 @@ class FlutterFeathersApp extends FeathersApp {
   @override
   void initialize() async {
     _dio = Dio();
-    _preferences = await SharedPreferences.getInstance();
-    super.dio = _dio;
-    super.preferences = _preferences;
+    preferences = await SharedPreferences.getInstance();
+    super._dio = _dio;
+    super.preferences = preferences;
     if (authConfig != null) {
-      this._accessToken = _preferences.getString(authConfig.sharedPrefKey);
-      super.accessToken = _accessToken;
+      this.accessToken = preferences.getString(authConfig.sharedPrefKey);
+      super.accessToken = accessToken;
     }
   }
 
+  ///
+  /// Returns a FeatherService with provided path
+  /// included access token in header of Dio client
+  ///
   @override
   FlutterFeatherService service(String path) {
     _dio.options.headers['Authorization'] = accessToken;
@@ -87,7 +89,7 @@ class FlutterFeathersApp extends FeathersApp {
 
   @override
   Future<Response<T>> authenticate<T>(
-      Map<String, dynamic> body, Map<String, dynamic> queryParameters) async {
+      {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
     try {
       // _dio.options.headers['Authorization'] = null;
       final response = await _dio.post('$baseUrl${authConfig.authPath}',
@@ -106,6 +108,9 @@ class FlutterFeathersApp extends FeathersApp {
     }
   }
 
+  ///
+  /// Re-authenticate app and update access token if provided authentication mode
+  ///
   @override
   reAuthenticate(AuthMode mode) {
     if (accessToken?.isEmpty ?? true) {
@@ -122,13 +127,22 @@ class FlutterFeathersApp extends FeathersApp {
     }
   }
 
-  String get accessToken => _accessToken;
+  ///
+  /// Get access token if authenticated otherwise return null
+  ///
+  String get accessToken => accessToken;
 
+  ///
+  /// Set the access token and update to shared preference
+  ///
   set accessToken(String accessToken) {
-    _accessToken = accessToken;
-    _preferences.setString(authConfig.sharedPrefKey, accessToken);
+    accessToken = accessToken;
+    preferences.setString(authConfig.sharedPrefKey, accessToken);
   }
 
+  ///
+  /// Raw dio client for other api calls
+  ///
   Dio get rawDio => _dio;
 }
 

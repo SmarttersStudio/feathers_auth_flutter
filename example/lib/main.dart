@@ -1,58 +1,43 @@
-import 'package:flutter/material.dart';
+import 'dart:developer';
 import 'dart:async';
-
-import 'package:flutter/services.dart';
 import 'package:feathers_auth_flutter/feathers_auth_flutter.dart';
 
-void main() {
-  runApp(MyApp());
-}
+Future<void> main() async {
+  ///
+  /// Initialize app with your base url and authentication configs if any
+  ///
+  FlutterFeathersApp app = FlutterFeathersApp('<base url>',
+      authConfig: AuthConfig('<authentication path>',
+          authMode: AuthMode.authenticateOnExpire,
+          sharedPrefKey: 'accessToken'));
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
-}
+  app.initialize();
 
-class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  ///
+  /// Authenticate your app
+  ///
+  app.authenticate(body: {}, queryParameters: {});
 
-  @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-  }
+  ///
+  /// Re-authenticate your app if needed
+  ///
+  app.reAuthenticate(AuthMode.authenticateOnExpire);
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      platformVersion = await FeathersAuthFlutter.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
+  ///
+  /// If you need to access any other api rather than your base url
+  /// app.rawDio you provide you raw Dio client without access token attached to header
+  ///
+  final res = await app.rawDio.get<String>('<any outside urls>');
+  log('RAW GET ${res.data}');
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
+  ///
+  /// Create you service providing service path
+  ///
+  final FlutterFeatherService userService = app.service('users');
 
-    setState(() {
-      _platformVersion = platformVersion;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
-        ),
-      ),
-    );
-  }
+  ///
+  /// Get response from service
+  ///
+  final usersRes = await userService.get<String>();
+  log('USER SERVICE GET ${usersRes.data}');
 }
