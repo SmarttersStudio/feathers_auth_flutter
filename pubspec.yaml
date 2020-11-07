@@ -1,7 +1,6 @@
 name: feathers_auth_flutter
 description: A new Flutter plugin.
 version: 0.0.1
-author: Sunil Kumar <sunil@smarttersstudio.com>
 homepage: https://github.com/SmarttersStudio/feathers_auth_flutter
 
 environment:
