@@ -29,12 +29,12 @@ abstract class FeathersApp {
   ///
   /// Socket io client to manage bi-directional event based communication
   ///
-  SocketIO socket;
+  SocketIO _socket;
 
   ///
   /// Socket manager to connect client to a given server
   ///
-  SocketIOManager manager;
+  SocketIOManager _socketManager;
 
   FeathersApp(this.baseUrl, {this.authConfig});
 
@@ -64,7 +64,7 @@ abstract class FeathersApp {
   ///
   /// configure socket and connect to a given server
   ///
-  void configureSocket();
+  void configureSocket(FeathersSocketOptions options, {Function(SocketIO socket) initListeners});
 }
 
 ///
@@ -143,8 +143,26 @@ class FlutterFeathersApp extends FeathersApp {
   }
 
   @override
-  void configureSocket(){
-
+  Future<void> configureSocket(FeathersSocketOptions options, {Function(SocketIO socket) initListeners}) async {
+      List<Transports> transports = [];
+      options.transports.forEach((element) {
+          if(element == TransportType.WEB_SOCKET){
+              transports.add(Transports.WEB_SOCKET);
+          }else if(element == TransportType.POLLING){
+              transports.add(Transports.POLLING);
+          }
+      });
+      _socketManager = SocketIOManager();
+      _socket = await _socketManager.createInstance(SocketOptions(options.uri,
+          query: options.query,
+          enableLogging: options.enableLogging,
+          nameSpace: options.nameSpace,
+          path: options.path,
+          transports: transports
+      ));
+      super._socketManager = _socketManager;
+      super._socket = _socket;
+      initListeners(_socket);
   }
 
 
