@@ -26,6 +26,16 @@ abstract class FeathersApp {
   ///
   SharedPreferences preferences;
 
+  ///
+  /// Socket io client to manage bi-directional event based communication
+  ///
+  SocketIO socket;
+
+  ///
+  /// Socket manager to connect client to a given server
+  ///
+  SocketIOManager manager;
+
   FeathersApp(this.baseUrl, {this.authConfig});
 
   ///
@@ -50,6 +60,11 @@ abstract class FeathersApp {
   /// Re-authenticate app and update access token
   ///
   reAuthenticate(AuthMode authMode);
+
+  ///
+  /// configure socket and connect to a given server
+  ///
+  void configureSocket();
 }
 
 ///
@@ -126,6 +141,12 @@ class FlutterFeathersApp extends FeathersApp {
       }
     }
   }
+
+  @override
+  void configureSocket(){
+
+  }
+
 
   ///
   /// Get access token if authenticated otherwise return null

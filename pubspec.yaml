@@ -10,3 +10,4 @@ environment:
 dependencies:
   dio: ^3.0.10
   shared_preferences: ^0.5.12+4
+  adhara_socket_io: 0.4.2+1
