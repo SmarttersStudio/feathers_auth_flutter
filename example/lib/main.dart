@@ -40,4 +40,58 @@ Future<void> main() async {
   ///
   final usersRes = await userService.get<String>();
   log('USER SERVICE GET ${usersRes.data}');
+
+  ///
+  /// Configure socket with FeathersSocketOptions and initialize all your event listeners
+  ///
+  app.configureSocket(
+      FeathersSocketOptions('demo.com',
+          nameSpace: "/",
+          query: {"Authorization": "accssToken"},
+          enableLogging: false,
+          transports: [TransportType.WEB_SOCKET]),
+      initEventListeners: (socket) {
+    socket.on('event_1', (data) {
+      print("event_1");
+    });
+    socket.on('event_2', (data) {
+      print("event_2");
+    });
+  });
+
+  ///
+  /// Connects to socket
+  /// on successful connection an emit authenticate event is fired with enabled acknowledgement
+  /// on failure we are getting a callback
+  /// like above callbacks, we are getting a few more connection callbacks also
+  /// you can also use those as per your requirements
+  ///
+  app.connectToSocket(onConnect: (data) {
+    print("connected...");
+
+    /// emits through socket which takes event name and data as List<dynamic> as its arguments
+    app.emitThroughSocket(
+        'authenticate',
+        [
+          {
+            "accessToken": "accessToken",
+            "strategy": "jwt",
+          }
+        ],
+        withAck: true);
+  }, onConnectError: (data) {
+    print("some connection error occured");
+  });
+
+  ///
+  /// First it disposes all the event listeners which you have created at the time of configuration
+  /// Then it disposes the socket itself
+  /// It takes event names as argument
+  ///
+  app.disposeSocket(['event_1', 'event_2']);
+
+  ///
+  /// Raw Socket io client for more customization
+  ///
+  app.rawSocket.emitWithAck('event', []);
 }

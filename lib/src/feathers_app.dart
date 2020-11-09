@@ -235,7 +235,8 @@ class FlutterFeathersApp extends FeathersApp {
   }
 
   ///
-  /// Emit event with or with out acknowledgement
+  /// Emits through socket which takes event name(String) and data(List<dynamic>) as its arguments
+  /// emitWithAck OR emit is fired as per the withAck
   ///
   @override
   dynamic emitThroughSocket(String eventName, List<dynamic> arguments,
@@ -248,7 +249,8 @@ class FlutterFeathersApp extends FeathersApp {
   }
 
   ///
-  /// Dispose all event listeners and socket io client
+  /// Disposes all event listeners and then socket itself
+  /// Takes list of event names of all active event listeners which are initialized at the time of configuration
   ///
   @override
   Future<void> disposeSocket([List<String> eventNames]) async {
