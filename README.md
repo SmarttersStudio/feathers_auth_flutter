@@ -82,8 +82,6 @@ app.configureSocket(
 ```dart
 app.connectToSocket(onConnect: (data) {
     print("connected...");
-
-    /// emits through socket which takes event name and data as List<dynamic> as its arguments
     app.emitThroughSocket(
         'authenticate',
         [
