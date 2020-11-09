@@ -58,3 +58,51 @@ log('USER SERVICE GET ${usersRes.data}');
 final res = await app.rawDio.get<String>('<any outside urls>');
 log('RAW GET ${res.data}');
 ```
+
+### Configure A Socket
+```dart
+app.configureSocket(
+      FeathersSocketOptions('demo.com',
+          nameSpace: "/",
+          query: {"Authorization": "accssToken"},
+          enableLogging: false,
+          transports: [TransportType.WEB_SOCKET]),
+      initEventListeners: (socket) {
+    socket.on('event_1', (data) {
+      print("event_1");
+    });
+    socket.on('event_2', (data) {
+      print("event_2");
+    });
+  });
+```
+
+### Connect To A Socket
+```dart
+app.connectToSocket(onConnect: (data) {
+    print("connected...");
+
+    /// emits through socket which takes event name and data as List<dynamic> as its arguments
+    app.emitThroughSocket(
+        'authenticate',
+        [
+          {
+            "accessToken": "accessToken",
+            "strategy": "jwt",
+          }
+        ],
+        withAck: true);
+  }, onConnectError: (data) {
+    print("some connection error occured");
+  });
+```
+
+### Dispose A Socket
+```dart
+app.disposeSocket(['event_1', 'event_2']);
+```
+
+### For more customization on socket
+```dart
+app.rawSocket.emitWithAck('event', []);
+```
