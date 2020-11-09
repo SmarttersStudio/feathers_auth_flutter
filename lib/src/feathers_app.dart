@@ -62,9 +62,27 @@ abstract class FeathersApp {
   reAuthenticate(AuthMode authMode);
 
   ///
-  /// configure socket and connect to a given server
+  /// configures socket
   ///
-  void configureSocket(FeathersSocketOptions options, {Function(SocketIO socket) initListeners});
+  void configureSocket(FeathersSocketOptions options,
+      {Function(SocketIO socket) initListeners});
+
+  ///
+  /// Connect to the socket of a given server
+  ///
+  void connectToSocket(
+      {Function(dynamic data) onConnect,
+      Function(dynamic data) onConnectError,
+      Function(dynamic data) onConnecting,
+      Function(dynamic data) onConnectionTimeOut,
+      Function(dynamic data) onDisconnect,
+      Function(dynamic data) onReconnect,
+      Function(dynamic data) onReconnecting,
+      Function(dynamic data) onReconnectError,
+      Function(dynamic data) onReconnectFailed,
+      Function(dynamic data) onError,
+      Function(dynamic data) onPing,
+      Function(dynamic data) onPong});
 }
 
 ///
@@ -143,28 +161,62 @@ class FlutterFeathersApp extends FeathersApp {
   }
 
   @override
-  Future<void> configureSocket(FeathersSocketOptions options, {Function(SocketIO socket) initListeners}) async {
-      List<Transports> transports = [];
-      options.transports.forEach((element) {
-          if(element == TransportType.WEB_SOCKET){
-              transports.add(Transports.WEB_SOCKET);
-          }else if(element == TransportType.POLLING){
-              transports.add(Transports.POLLING);
-          }
-      });
-      _socketManager = SocketIOManager();
-      _socket = await _socketManager.createInstance(SocketOptions(options.uri,
-          query: options.query,
-          enableLogging: options.enableLogging,
-          nameSpace: options.nameSpace,
-          path: options.path,
-          transports: transports
-      ));
-      super._socketManager = _socketManager;
-      super._socket = _socket;
-      initListeners(_socket);
+  Future<void> configureSocket(FeathersSocketOptions options,
+      {Function(SocketIO socket) initListeners}) async {
+    List<Transports> transports = [];
+    options.transports.forEach((element) {
+      if (element == TransportType.WEB_SOCKET) {
+        transports.add(Transports.WEB_SOCKET);
+      } else if (element == TransportType.POLLING) {
+        transports.add(Transports.POLLING);
+      }
+    });
+    _socketManager = SocketIOManager();
+    _socket = await _socketManager.createInstance(SocketOptions(options.uri,
+        query: options.query,
+        enableLogging: options.enableLogging,
+        nameSpace: options.nameSpace,
+        path: options.path,
+        transports: transports));
+    super._socketManager = _socketManager;
+    super._socket = _socket;
+    initListeners(_socket);
   }
 
+  @override
+  Future<void> connectToSocket({
+    Function(dynamic data) onConnect,
+    Function(dynamic data) onConnectError,
+    Function(dynamic data) onConnecting,
+    Function(dynamic data) onConnectionTimeOut,
+    Function(dynamic data) onDisconnect,
+    Function(dynamic data) onReconnect,
+    Function(dynamic data) onReconnecting,
+    Function(dynamic data) onReconnectError,
+    Function(dynamic data) onReconnectFailed,
+    Function(dynamic data) onError,
+    Function(dynamic data) onPing,
+    Function(dynamic data) onPong,
+  }) async {
+    if (await _socket.isConnected()) {
+      _socketManager?.clearInstance(_socket);
+    }
+
+    _socket.onConnecting(onConnecting);
+    _socket.onConnect(onConnect);
+    _socket.onConnectError(onConnectError);
+    _socket.onConnectTimeout(onConnectionTimeOut);
+    _socket.onDisconnect(onDisconnect);
+    _socket.onReconnect(onReconnect);
+    _socket.onReconnecting(onReconnecting);
+    _socket.onReconnectError(onReconnectError);
+    _socket.onReconnectFailed(onReconnectFailed);
+    _socket.onError(onError);
+    _socket.onPing(onPing);
+    _socket.onPong(onPong);
+
+    _socket.connect();
+  }
 
   ///
   /// Get access token if authenticated otherwise return null
@@ -183,6 +235,16 @@ class FlutterFeathersApp extends FeathersApp {
   /// Raw dio client for other api calls
   ///
   Dio get rawDio => _dio;
+
+  ///
+  /// Raw Socket IO client for other operations
+  ///
+  SocketIO get rawSocket => _socket;
+
+  ///
+  /// Raw Socket IO Manager for other operations
+  ///
+  SocketIOManager get rawSocketManager => _socketManager;
 }
 
 class AuthConfig {
