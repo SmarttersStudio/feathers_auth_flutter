@@ -62,13 +62,13 @@ abstract class FeathersApp {
   reAuthenticate(AuthMode authMode);
 
   ///
-  /// configures socket
+  /// Configure Socket with [FeathersSocketOptions] and optional event listeners
   ///
   void configureSocket(FeathersSocketOptions options,
-      {Function(SocketIO socket) initListeners});
+      {Function(SocketIO socket) initEventListeners});
 
   ///
-  /// Connect to the socket of a given server
+  /// Connect to the socket with some optional connection listeners
   ///
   void connectToSocket(
       {Function(dynamic data) onConnect,
@@ -160,9 +160,13 @@ class FlutterFeathersApp extends FeathersApp {
     }
   }
 
+  ///
+  /// Configures the socket with required [FeathersSocketOptions]
+  /// Also takes some event listeners as optional named parameter
+  ///
   @override
   Future<void> configureSocket(FeathersSocketOptions options,
-      {Function(SocketIO socket) initListeners}) async {
+      {Function(SocketIO socket) initEventListeners}) async {
     List<Transports> transports = [];
     options.transports.forEach((element) {
       if (element == TransportType.WEB_SOCKET) {
@@ -180,9 +184,12 @@ class FlutterFeathersApp extends FeathersApp {
         transports: transports));
     super._socketManager = _socketManager;
     super._socket = _socket;
-    initListeners(_socket);
+    initEventListeners(_socket);
   }
 
+  ///
+  /// Connects to socket with some optional connection listeners
+  ///
   @override
   Future<void> connectToSocket({
     Function(dynamic data) onConnect,
@@ -201,7 +208,6 @@ class FlutterFeathersApp extends FeathersApp {
     if (await _socket.isConnected()) {
       _socketManager?.clearInstance(_socket);
     }
-
     _socket.onConnecting(onConnecting);
     _socket.onConnect(onConnect);
     _socket.onConnectError(onConnectError);
@@ -214,7 +220,6 @@ class FlutterFeathersApp extends FeathersApp {
     _socket.onError(onError);
     _socket.onPing(onPing);
     _socket.onPong(onPong);
-
     _socket.connect();
   }
 
