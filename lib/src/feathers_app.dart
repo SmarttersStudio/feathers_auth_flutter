@@ -64,13 +64,13 @@ abstract class FeathersApp {
   ///
   /// Configure Socket with [FeathersSocketOptions] and optional event listeners
   ///
-  void configureSocket(FeathersSocketOptions options,
+  Future<void> configureSocket(FeathersSocketOptions options,
       {Function(SocketIO socket) initEventListeners});
 
   ///
   /// Connect to the socket with some optional connection listeners
   ///
-  void connectToSocket(
+  Future<void> connectToSocket(
       {Function(dynamic data) onConnect,
       Function(dynamic data) onConnectError,
       Function(dynamic data) onConnecting,
@@ -85,9 +85,15 @@ abstract class FeathersApp {
       Function(dynamic data) onPong});
 
   ///
+  /// Emit through socket with or without acknowledgement
+  ///
+  dynamic emitThroughSocket(String eventName, List<dynamic> arguments,
+      {bool withAck});
+
+  ///
   /// Dispose socket
   ///
-  void disposeSocket([List<String> events]);
+  Future<void> disposeSocket([List<String> eventNames]);
 }
 
 ///
@@ -229,11 +235,24 @@ class FlutterFeathersApp extends FeathersApp {
   }
 
   ///
+  /// Emit event with or with out acknowledgement
+  ///
+  @override
+  dynamic emitThroughSocket(String eventName, List<dynamic> arguments,
+      {bool withAck = true}) {
+    if (withAck) {
+      return _socket.emitWithAck(eventName, arguments);
+    } else {
+      return _socket.emit(eventName, arguments);
+    }
+  }
+
+  ///
   /// Dispose all event listeners and socket io client
   ///
   @override
-  Future<void> disposeSocket([List<String> events]) async {
-    events.forEach((event) {
+  Future<void> disposeSocket([List<String> eventNames]) async {
+    eventNames.forEach((event) {
       _socket?.off(event);
     });
     if (await _socket?.isConnected()) {
