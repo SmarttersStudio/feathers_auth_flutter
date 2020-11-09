@@ -7,6 +7,7 @@ Feathers client for Dart
 - Re-authenticate app if access token expires
 - Custom service
 - Access to handle other outside api calls
+- Bi-directional event based communication using feathers socket client
 
 ## Get Started
 
