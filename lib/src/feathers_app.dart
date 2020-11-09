@@ -26,6 +26,16 @@ abstract class FeathersApp {
   ///
   SharedPreferences preferences;
 
+  ///
+  /// Socket io client to manage bi-directional event based communication
+  ///
+  SocketIO _socket;
+
+  ///
+  /// Socket manager to connect client to a given server
+  ///
+  SocketIOManager _socketManager;
+
   FeathersApp(this.baseUrl, {this.authConfig});
 
   ///
@@ -50,6 +60,40 @@ abstract class FeathersApp {
   /// Re-authenticate app and update access token
   ///
   reAuthenticate(AuthMode authMode);
+
+  ///
+  /// Configure Socket with [FeathersSocketOptions] and optional event listeners
+  ///
+  Future<void> configureSocket(FeathersSocketOptions options,
+      {Function(SocketIO socket) initEventListeners});
+
+  ///
+  /// Connect to the socket with some optional connection listeners
+  ///
+  Future<void> connectToSocket(
+      {Function(dynamic data) onConnect,
+      Function(dynamic data) onConnectError,
+      Function(dynamic data) onConnecting,
+      Function(dynamic data) onConnectionTimeOut,
+      Function(dynamic data) onDisconnect,
+      Function(dynamic data) onReconnect,
+      Function(dynamic data) onReconnecting,
+      Function(dynamic data) onReconnectError,
+      Function(dynamic data) onReconnectFailed,
+      Function(dynamic data) onError,
+      Function(dynamic data) onPing,
+      Function(dynamic data) onPong});
+
+  ///
+  /// Emit through socket with or without acknowledgement
+  ///
+  dynamic emitThroughSocket(String eventName, List<dynamic> arguments,
+      {bool withAck});
+
+  ///
+  /// Dispose socket
+  ///
+  Future<void> disposeSocket([List<String> eventNames]);
 }
 
 ///
@@ -128,6 +172,97 @@ class FlutterFeathersApp extends FeathersApp {
   }
 
   ///
+  /// Configures the socket with required [FeathersSocketOptions]
+  /// Also takes some event listeners as optional named parameter
+  ///
+  @override
+  Future<void> configureSocket(FeathersSocketOptions options,
+      {Function(SocketIO socket) initEventListeners}) async {
+    List<Transports> transports = [];
+    options.transports.forEach((element) {
+      if (element == TransportType.WEB_SOCKET) {
+        transports.add(Transports.WEB_SOCKET);
+      } else if (element == TransportType.POLLING) {
+        transports.add(Transports.POLLING);
+      }
+    });
+    _socketManager = SocketIOManager();
+    _socket = await _socketManager.createInstance(SocketOptions(options.uri,
+        query: options.query,
+        enableLogging: options.enableLogging,
+        nameSpace: options.nameSpace,
+        path: options.path,
+        transports: transports));
+    super._socketManager = _socketManager;
+    super._socket = _socket;
+    initEventListeners(_socket);
+  }
+
+  ///
+  /// Connects to socket with some optional connection listeners
+  ///
+  @override
+  Future<void> connectToSocket({
+    Function(dynamic data) onConnect,
+    Function(dynamic data) onConnectError,
+    Function(dynamic data) onConnecting,
+    Function(dynamic data) onConnectionTimeOut,
+    Function(dynamic data) onDisconnect,
+    Function(dynamic data) onReconnect,
+    Function(dynamic data) onReconnecting,
+    Function(dynamic data) onReconnectError,
+    Function(dynamic data) onReconnectFailed,
+    Function(dynamic data) onError,
+    Function(dynamic data) onPing,
+    Function(dynamic data) onPong,
+  }) async {
+    if (await _socket?.isConnected()) {
+      _socketManager?.clearInstance(_socket);
+    }
+    _socket?.onConnecting(onConnecting);
+    _socket?.onConnect(onConnect);
+    _socket?.onConnectError(onConnectError);
+    _socket?.onConnectTimeout(onConnectionTimeOut);
+    _socket?.onDisconnect(onDisconnect);
+    _socket?.onReconnect(onReconnect);
+    _socket?.onReconnecting(onReconnecting);
+    _socket?.onReconnectError(onReconnectError);
+    _socket?.onReconnectFailed(onReconnectFailed);
+    _socket?.onError(onError);
+    _socket?.onPing(onPing);
+    _socket?.onPong(onPong);
+    _socket?.connect();
+  }
+
+  ///
+  /// Emits through socket which takes event name(String) and data(List<dynamic>) as its arguments
+  /// emitWithAck OR emit is fired as per the withAck
+  ///
+  @override
+  dynamic emitThroughSocket(String eventName, List<dynamic> arguments,
+      {bool withAck = true}) {
+    if (withAck) {
+      return _socket.emitWithAck(eventName, arguments);
+    } else {
+      return _socket.emit(eventName, arguments);
+    }
+  }
+
+  ///
+  /// Disposes all event listeners and then socket itself
+  /// Takes list of event names of all active event listeners which are initialized at the time of configuration
+  ///
+  @override
+  Future<void> disposeSocket([List<String> eventNames]) async {
+    eventNames.forEach((event) {
+      _socket?.off(event);
+    });
+    if (await _socket?.isConnected()) {
+      _socketManager?.clearInstance(_socket);
+    }
+  }
+
+  ///
   /// Get access token if authenticated otherwise return null
   ///
   String get accessToken => accessToken;
@@ -144,6 +279,16 @@ class FlutterFeathersApp extends FeathersApp {
   /// Raw dio client for other api calls
   ///
   Dio get rawDio => _dio;
+
+  ///
+  /// Raw Socket IO client for other operations
+  ///
+  SocketIO get rawSocket => _socket;
+
+  ///
+  /// Raw Socket IO Manager for other operations
+  ///
+  SocketIOManager get rawSocketManager => _socketManager;
 }
 
 class AuthConfig {
