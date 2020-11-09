@@ -83,6 +83,11 @@ abstract class FeathersApp {
       Function(dynamic data) onError,
       Function(dynamic data) onPing,
       Function(dynamic data) onPong});
+
+  ///
+  /// Dispose socket
+  ///
+  void disposeSocket([List<String> events]);
 }
 
 ///
@@ -205,22 +210,35 @@ class FlutterFeathersApp extends FeathersApp {
     Function(dynamic data) onPing,
     Function(dynamic data) onPong,
   }) async {
-    if (await _socket.isConnected()) {
+    if (await _socket?.isConnected()) {
       _socketManager?.clearInstance(_socket);
     }
-    _socket.onConnecting(onConnecting);
-    _socket.onConnect(onConnect);
-    _socket.onConnectError(onConnectError);
-    _socket.onConnectTimeout(onConnectionTimeOut);
-    _socket.onDisconnect(onDisconnect);
-    _socket.onReconnect(onReconnect);
-    _socket.onReconnecting(onReconnecting);
-    _socket.onReconnectError(onReconnectError);
-    _socket.onReconnectFailed(onReconnectFailed);
-    _socket.onError(onError);
-    _socket.onPing(onPing);
-    _socket.onPong(onPong);
-    _socket.connect();
+    _socket?.onConnecting(onConnecting);
+    _socket?.onConnect(onConnect);
+    _socket?.onConnectError(onConnectError);
+    _socket?.onConnectTimeout(onConnectionTimeOut);
+    _socket?.onDisconnect(onDisconnect);
+    _socket?.onReconnect(onReconnect);
+    _socket?.onReconnecting(onReconnecting);
+    _socket?.onReconnectError(onReconnectError);
+    _socket?.onReconnectFailed(onReconnectFailed);
+    _socket?.onError(onError);
+    _socket?.onPing(onPing);
+    _socket?.onPong(onPong);
+    _socket?.connect();
+  }
+
+  ///
+  /// Dispose all event listeners and socket io client
+  ///
+  @override
+  Future<void> disposeSocket([List<String> events]) async {
+    events.forEach((event) {
+      _socket?.off(event);
+    });
+    if (await _socket?.isConnected()) {
+      _socketManager?.clearInstance(_socket);
+    }
   }
 
   ///
