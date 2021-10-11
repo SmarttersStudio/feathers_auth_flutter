@@ -9,29 +9,29 @@ abstract class FeathersApp {
   ///
   /// Authentication configurations
   ///
-  AuthConfig authConfig;
+  AuthConfig? authConfig;
 
   ///
   /// Access token is authorised
   ///
-  String accessToken;
+  late String accessToken;
 
   ///
   /// Dio client
   ///
-  Dio _dio;
+  late Dio _dio;
 
   ///
   /// Shared preference for storing token
   ///
-  SharedPreferences preferences;
+  late SharedPreferences preferences;
 
   FeathersApp(this.baseUrl, {this.authConfig});
 
   ///
   /// Configure app using base url and authentication configurations
   ///
-  void configure({String baseUrl, AuthConfig authConfig});
+  void configure({required String baseUrl, AuthConfig authConfig});
 
   ///
   /// Initialize app
@@ -56,11 +56,11 @@ abstract class FeathersApp {
 /// Implementation of FeathersApp
 ///
 class FlutterFeathersApp extends FeathersApp {
-  FlutterFeathersApp(String baseUrl, {AuthConfig authConfig})
+  FlutterFeathersApp(String baseUrl, {AuthConfig? authConfig})
       : super(baseUrl, authConfig: authConfig);
 
   @override
-  void configure({String baseUrl, AuthConfig authConfig}) {
+  void configure({required String baseUrl, AuthConfig? authConfig}) {
     this.baseUrl = baseUrl;
     this.authConfig = authConfig;
   }
@@ -72,7 +72,7 @@ class FlutterFeathersApp extends FeathersApp {
     super._dio = _dio;
     super.preferences = preferences;
     if (authConfig != null) {
-      this.accessToken = preferences.getString(authConfig.sharedPrefKey);
+      this.accessToken = preferences.getString(authConfig!.sharedPrefKey!)!;
       super.accessToken = accessToken;
     }
   }
@@ -89,18 +89,23 @@ class FlutterFeathersApp extends FeathersApp {
 
   @override
   Future<Response<T>> authenticate<T>(
-      {Map<String, dynamic> body, Map<String, dynamic> queryParameters}) async {
+      {dynamic body = const {},
+      Map<String, dynamic> queryParameters = const {}}) async {
     try {
       // _dio.options.headers['Authorization'] = null;
-      final response = await _dio.post('$baseUrl${authConfig.authPath}',
+      final Response<T> response = await _dio.post(
+          '$baseUrl${authConfig?.authPath}',
           queryParameters: queryParameters);
-      accessToken = response.data['accessToken'];
+      if (response.data is Map) {
+        final data = response.data as Map<String, dynamic>;
+        accessToken = data['accessToken'];
+      }
       return response;
     } catch (error) {
-      if (error.response == null) {
+      if ((error as dynamic).response == null) {
         return Future.error(FeathersError.noInternet());
       } else if (error is DioError) {
-        return Future.error(FeathersError.fromJson(error.response.data));
+        return Future.error(FeathersError.fromJson(error.response!.data));
       } else {
         return Future.error(FeathersError(
             message: error.toString(), name: 'Some error occurred'));
@@ -137,7 +142,8 @@ class FlutterFeathersApp extends FeathersApp {
   ///
   set accessToken(String accessToken) {
     accessToken = accessToken;
-    preferences.setString(authConfig.sharedPrefKey, accessToken);
+    if (authConfig?.sharedPrefKey != null)
+      preferences.setString(authConfig!.sharedPrefKey!, accessToken);
   }
 
   ///
@@ -147,9 +153,9 @@ class FlutterFeathersApp extends FeathersApp {
 }
 
 class AuthConfig {
-  String authPath;
-  String sharedPrefKey;
-  AuthMode authMode;
+  String? authPath;
+  String? sharedPrefKey;
+  AuthMode? authMode;
 
   AuthConfig(this.authPath,
       {this.sharedPrefKey = '', this.authMode = AuthMode.authenticateOnExpire})
