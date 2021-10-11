@@ -6,20 +6,20 @@ FeathersError featherErrorFromJson(String str) =>
 String featherErrorToJson(FeathersError data) => json.encode(data.toJson());
 
 class FeathersError {
-  String name;
-  String message;
-  int code;
-  bool isRestError;
-  bool result;
+  String? name;
+  String? message;
+  int? code;
+  bool? isRestError;
+  bool? result;
 
   FeathersError(
       {this.name, this.message, this.code, this.isRestError, this.result});
   factory FeathersError.noInternet(
-          {String name,
-          String message,
-          int code,
-          bool isRestError,
-          bool result}) =>
+          {String? name,
+          String? message,
+          int? code,
+          bool? isRestError,
+          bool? result}) =>
       FeathersError(
           message: message ?? 'Error while connecting',
           code: code ?? 0,
@@ -35,7 +35,7 @@ class FeathersError {
       result: json['result'] ?? (json["code"] == 200 || json["code"] == 201));
 
   @override
-  String toString() => message;
+  String toString() => message ?? "Some error occurred";
 
   Map<String, dynamic> toJson() => {
         "name": name,
